@@ -148,7 +148,7 @@ _arc_segments_needed (double	      angle,
    error expression is quite simple, (see the comment for
    _arc_error_normalized).
 */
-static void
+static __attribute__((unused)) void
 _cairo_arc_segment (cairo_t *cr,
 		    double   xc,
 		    double   yc,
@@ -223,6 +223,7 @@ _cairo_arc_in_direction (cairo_t	  *cr,
 	cairo_matrix_t ctm;
 	int i, segments;
 	double step;
+	double r_sin_A, r_cos_A, r_sin_B, r_cos_B, h;
 
 	cairo_get_matrix (cr, &ctm);
 	segments = _arc_segments_needed (angle_max - angle_min,
@@ -241,17 +242,42 @@ _cairo_arc_in_direction (cairo_t	  *cr,
 	    step = -step;
 	}
 
+	r_cos_A = radius * cos (angle_min);
+	r_sin_A = radius * sin (angle_min);
 	cairo_line_to (cr,
-		       xc + radius * cos (angle_min),
-		       yc + radius * sin (angle_min));
+		       xc + r_cos_A,
+		       yc + r_sin_A);
 
-	for (i = 0; i < segments; i++, angle_min += step) {
-	    _cairo_arc_segment (cr, xc, yc, radius,
-				angle_min, angle_min + step);
+	h = 4.0/3.0 * tan (step / 4.0);
+
+	for (i = 0; i < segments; i++) {
+	    angle_min += step;
+	    r_cos_B = radius * cos (angle_min);
+	    r_sin_B = radius * sin (angle_min);
+
+	    cairo_curve_to (cr,
+			    xc + r_cos_A - h * r_sin_A,
+			    yc + r_sin_A + h * r_cos_A,
+			    xc + r_cos_B + h * r_sin_B,
+			    yc + r_sin_B - h * r_cos_B,
+			    xc + r_cos_B,
+			    yc + r_sin_B);
+
+	    r_cos_A = r_cos_B;
+	    r_sin_A = r_sin_B;
 	}
 
-	_cairo_arc_segment (cr, xc, yc, radius,
-			    angle_min, angle_max);
+	r_cos_B = radius * cos (angle_max);
+	r_sin_B = radius * sin (angle_max);
+	h = 4.0/3.0 * tan ((angle_max - angle_min) / 4.0);
+
+	cairo_curve_to (cr,
+			xc + r_cos_A - h * r_sin_A,
+			yc + r_sin_A + h * r_cos_A,
+			xc + r_cos_B + h * r_sin_B,
+			yc + r_sin_B - h * r_cos_B,
+			xc + r_cos_B,
+			yc + r_sin_B);
     } else {
 	cairo_line_to (cr,
 		       xc + radius * cos (angle_min),
