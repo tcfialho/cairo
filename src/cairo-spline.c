@@ -200,6 +200,7 @@ _cairo_spline_error_squared (const cairo_spline_knots_t *knots)
 	dx = _cairo_fixed_to_double (knots->d.x - knots->a.x);
 	dy = _cairo_fixed_to_double (knots->d.y - knots->a.y);
 	 v = dx * dx + dy * dy;
+	double inv_v = 1.0 / v;
 
 	u = bdx * dx + bdy * dy;
 	if (u <= 0) {
@@ -210,8 +211,9 @@ _cairo_spline_error_squared (const cairo_spline_knots_t *knots)
 	    bdx -= dx;
 	    bdy -= dy;
 	} else {
-	    bdx -= u/v * dx;
-	    bdy -= u/v * dy;
+	    double factor = u * inv_v;
+	    bdx -= factor * dx;
+	    bdy -= factor * dy;
 	}
 
 	u = cdx * dx + cdy * dy;
@@ -223,8 +225,9 @@ _cairo_spline_error_squared (const cairo_spline_knots_t *knots)
 	    cdx -= dx;
 	    cdy -= dy;
 	} else {
-	    cdx -= u/v * dx;
-	    cdy -= u/v * dy;
+	    double factor = u * inv_v;
+	    cdx -= factor * dx;
+	    cdy -= factor * dy;
 	}
     }
 
