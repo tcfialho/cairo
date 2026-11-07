@@ -2501,7 +2501,8 @@ _inplace_spans (void *abstract_renderer,
 	return CAIRO_STATUS_SUCCESS;
     }
 
-    mask = (uint8_t *)pixman_image_get_data (r->mask);
+    uint8_t *mask_base = (uint8_t *)pixman_image_get_data (r->mask);
+    mask = mask_base;
     x1 = x0 = spans[0].x;
     do {
 	int len = spans[1].x - spans[0].x;
@@ -2522,7 +2523,7 @@ _inplace_spans (void *abstract_renderer,
 					  0, 0,
 					  spans[0].x, y,
 					  len, h);
-		mask = (uint8_t *)pixman_image_get_data (r->mask);
+		mask = mask_base;
 		x0 = spans[1].x;
 	    } else if (spans[0].coverage == 0x0 &&
 		       x1 - x0 > r->u.composite.run_length) {
@@ -2532,9 +2533,9 @@ _inplace_spans (void *abstract_renderer,
 					  0, 0,
 					  x0, y,
 					  x1 - x0, h);
-		mask = (uint8_t *)pixman_image_get_data (r->mask);
+		mask = mask_base;
 		x0 = spans[1].x;
-	    }else {
+	    } else {
 		memset (mask, spans[0].coverage, --len);
 		mask += len;
 	    }
@@ -2567,7 +2568,8 @@ _inplace_opacity_spans (void *abstract_renderer, int y, int h,
     if (num_spans == 0)
 	return CAIRO_STATUS_SUCCESS;
 
-    mask = (uint8_t *)pixman_image_get_data (r->mask);
+    uint8_t *mask_base = (uint8_t *)pixman_image_get_data (r->mask);
+    mask = mask_base;
     x1 = x0 = spans[0].x;
     do {
 	int len = spans[1].x - spans[0].x;
@@ -2582,9 +2584,9 @@ _inplace_opacity_spans (void *abstract_renderer, int y, int h,
 					  0, 0,
 					  x0, y,
 					  x1 - x0, h);
-		mask = (uint8_t *)pixman_image_get_data (r->mask);
+		mask = mask_base;
 		x0 = spans[1].x;
-	    }else {
+	    } else {
 		memset (mask, m, --len);
 		mask += len;
 	    }
